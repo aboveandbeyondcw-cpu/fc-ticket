@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#1B2A4A" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="FC Ticket" />
+<title>FC Ticket</title>
+<link rel="manifest" href="/manifest.json" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --gold: #C4A35A;
+    --paper: #F4F1EA;
+    --ink: #142033;
+    --muted: #5A6578;
+    --line: #2A3A5A;
+    --ok: #1F7A4D;
+    --bad: #8B1E1E;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--navy); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  body { padding: env(safe-area-inset-top) 0 calc(88px + env(safe-area-inset-bottom)); }
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--navy); color: #fff;
+    padding: 14px 16px 12px;
+    border-bottom: 4px solid var(--gold);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { font-weight: 800; letter-spacing: .04em; }
+  .brand small { display: block; font-weight: 500; opacity: .75; letter-spacing: 0; font-size: 12px; }
+  button.ghost {
+    background: transparent; color: var(--gold); border: 1px solid var(--gold);
+    border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 700;
+  }
+  main { padding: 14px; max-width: 560px; margin: 0 auto; }
+  .card {
+    background: var(--paper); border-radius: 16px; padding: 14px;
+    margin-bottom: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  }
+  h2 { margin: 0 0 10px; font-size: 15px; color: var(--navy); }
+  label { display: block; font-size: 11px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: .04em; margin: 10px 0 4px; }
+  label span { display: block; font-weight: 500; color: var(--muted); text-transform: none; letter-spacing: 0; font-size: 11px; }
+  input, select, textarea {
+    width: 100%; border: 1.5px solid #c9c3b4; background: #fff; color: var(--ink);
+    border-radius: 10px; padding: 12px 12px; font-size: 16px;
+  }
+  textarea { min-height: 88px; resize: vertical; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .row3 { display: grid; grid-template-columns: 1.4fr .8fr .8fr .7fr; gap: 6px; }
+  .man { background: #fff; border: 1px dashed #c9c3b4; border-radius: 12px; padding: 8px; margin-top: 8px; }
+  .bar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    padding: 10px 14px calc(12px + env(safe-area-inset-bottom));
+    background: #10192c; border-top: 3px solid var(--gold);
+  }
+  .go {
+    width: 100%; max-width: 560px; margin: 0 auto; display: block;
+    background: var(--gold); color: var(--navy); border: 0;
+    font-weight: 900; font-size: 18px; letter-spacing: .03em;
+    border-radius: 14px; padding: 16px;
+  }
+  .go:active { transform: scale(.98); }
+  .msg { color: #fff; text-align: center; font-size: 13px; margin-top: 8px; min-height: 18px; }
+  .install {
+    display: none; background: #14233f; color: #fff; border: 1px solid var(--gold);
+    border-radius: 14px; padding: 12px; margin: 0 14px 12px; font-size: 13px;
+  }
+  .install b { color: var(--gold); }
+  .ok { color: #b7f0cf; }
+  .bad { color: #ffb3b3; }
+  .photos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .photos img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; border: 2px solid #fff; }
+  .cam {
+    display: flex; align-items: center; justify-content: center;
+    width: 72px; height: 72px; border-radius: 10px; background: var(--navy); color: var(--gold);
+    font-weight: 800; font-size: 28px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">FC TICKET<small>reporte diario</small></div>
+  <button class="ghost" id="langBtn" type="button">ES</button>
+</header>
+<div class="install" id="installHint"></div>
+<main>
+  <div class="card">
+    <h2 id="tJob">Job</h2>
+    <label>Date / Fecha<input id="date" type="date"></label>
+    <label>Job / Trabajo<input id="job" placeholder="King 3071 / Stanchfield / address"></label>
+    <label>Company / Compañía
+      <select id="company">
+        <option value="">—</option>
+        <option>King Waterproofing</option>
+        <option>JWC Specialties</option>
+        <option>FC</option>
+        <option>Other</option>
+      </select>
+    </label>
+    <label>Who is writing this / Quién escribe<input id="writer" placeholder="your full name"></label>
+  </div>
+
+  <div class="card">
+    <h2 id="tCrew">Crew + Hours</h2>
+    <div id="crew"></div>
+    <button class="ghost" type="button" id="addMan" style="margin-top:10px">+ man</button>
+  </div>
+
+  <div class="card">
+    <h2>Work / Trabajo</h2>
+    <label>What we did / Qué hicimos
+      <textarea id="work" placeholder="south wall sheet + drain board"></textarea>
+    </label>
+    <label>Material
+      <textarea id="mat" placeholder="1 roll 860 / 1 drain board / 1 box 925"></textarea>
+    </label>
+    <label>Weather / Clima<input id="weather" placeholder="sun / rain / cold"></label>
+    <label>Photos / Fotos</label>
+    <div class="photos" id="photos">
+      <label class="cam">+<input id="cam" type="file" accept="image/*" capture="environment" multiple hidden></label>
+    </div>
+  </div>
+</main>
+
+<div class="bar">
+  <button class="go" id="send" type="button">SEND TICKET</button>
+  <div class="msg" id="msg"></div>
+</div>
+
+<script>
+const LS = 'fc-ticket-v1';
+const photos = [];
+const i18n = {
+  en: { send:'SEND TICKET', hintIos:'iPhone: Share → Add to Home Screen. Then open FC Ticket like an app.', hintAnd:'Android: menu → Add to Home Screen / Install app.' },
+  es: { send:'ENVIAR REPORTE', hintIos:'iPhone: Compartir → Agregar a pantalla de inicio.', hintAnd:'Android: menú → Agregar a pantalla de inicio.' }
+};
+let lang = localStorage.getItem('fc-lang') || 'en';
+
+function todayISO(){
+  const d = new Date();
+  const z = (n)=> String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());
+}
+function manRow(v={}){
+  const el = document.createElement('div');
+  el.className = 'man';
+  el.innerHTML = `
+    <input class="n" placeholder="FULL NAME / NOMBRE" value="${v.n||''}">
+    <div class="row3" style="margin-top:6px">
+      <input class="s" type="time" value="${v.s||''}">
+      <input class="e" type="time" value="${v.e||''}">
+      <input class="h" inputmode="decimal" placeholder="HRS" value="${v.h||''}">
+      <input class="ot" placeholder="OT?" value="${v.ot||''}">
+    </div>`;
+  return el;
+}
+function addMan(v){ document.getElementById('crew').appendChild(manRow(v)); }
+function save(){
+  const crew = [...document.querySelectorAll('.man')].map(m => ({
+    n: m.querySelector('.n').value, s: m.querySelector('.s').value,
+    e: m.querySelector('.e').value, h: m.querySelector('.h').value, ot: m.querySelector('.ot').value
+  }));
+  const data = {
+    date: date.value, job: job.value, company: company.value, writer: writer.value,
+    work: work.value, mat: mat.value, weather: weather.value, crew
+  };
+  localStorage.setItem(LS, JSON.stringify(data));
+}
+function load(){
+  date.value = todayISO();
+  const raw = localStorage.getItem(LS);
+  if(!raw){ addMan(); addMan(); addMan(); return; }
+  try{
+    const d = JSON.parse(raw);
+    date.value = d.date || todayISO();
+    job.value = d.job || '';
+    company.value = d.company || '';
+    writer.value = d.writer || '';
+    work.value = d.work || '';
+    mat.value = d.mat || '';
+    weather.value = d.weather || '';
+    (d.crew && d.crew.length ? d.crew : [{},{},{}]).forEach(addMan);
+  }catch(e){ addMan(); addMan(); addMan(); }
+}
+function ticketText(){
+  const crew = [...document.querySelectorAll('.man')].map(m => {
+    const n=m.querySelector('.n').value.trim();
+    if(!n) return null;
+    return `${n}  ${m.querySelector('.s').value}-${m.querySelector('.e').value}  ${m.querySelector('.h').value} hrs ${m.querySelector('.ot').value}`;
+  }).filter(Boolean);
+  return [
+    'FC DAILY TICKET',
+    `DATE: ${date.value}`,
+    `JOB: ${job.value}`,
+    `COMPANY: ${company.value}`,
+    `WRITTEN BY: ${writer.value}`,
+    '',
+    'CREW + HOURS',
+    ...crew,
+    '',
+    'WORK:',
+    work.value,
+    '',
+    'MATERIAL:',
+    mat.value,
+    '',
+    `WEATHER: ${weather.value}`
+  ].join('\n');
+}
+function missing(){
+  const names = [...document.querySelectorAll('.man .n')].map(i=>i.value.trim()).filter(Boolean);
+  const hours = [...document.querySelectorAll('.man')].filter(m => m.querySelector('.n').value.trim()).map(m => m.querySelector('.h').value.trim());
+  const bad = [];
+  if(!date.value) bad.push('date');
+  if(!job.value.trim()) bad.push('job');
+  if(!writer.value.trim()) bad.push('who is writing');
+  if(!names.length) bad.push('crew names');
+  if(hours.some(h=>!h)) bad.push('hours');
+  if(!work.value.trim()) bad.push('what we did');
+  return bad;
+}
+async function sendTicket(){
+  save();
+  const bad = missing();
+  if(bad.length){
+    msg.className = 'msg bad';
+    msg.textContent = 'Missing: ' + bad.join(', ');
+    return;
+  }
+  const text = ticketText();
+  try{
+    if(navigator.share){
+      const files = photos.slice(0,8).map((blob,i)=> new File([blob], `photo-${i+1}.jpg`, {type: blob.type || 'image/jpeg'}));
+      const payload = { title: 'FC Daily Ticket', text };
+      if(files.length && navigator.canShare && navigator.canShare({files})) payload.files = files;
+      await navigator.share(payload);
+      msg.className = 'msg ok';
+      msg.textContent = 'Sent. New ticket stays on this phone until you change it.';
+      return;
+    }
+  }catch(e){
+    if(e && e.name === 'AbortError') return;
+  }
+  await navigator.clipboard.writeText(text);
+  msg.className = 'msg ok';
+  msg.textContent = 'Copied. Paste it in the text thread.';
+}
+function hint(){
+  const ua = navigator.userAgent || '';
+  const ios = /iPhone|iPad|iPod/.test(ua);
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if(standalone) return;
+  installHint.style.display = 'block';
+  installHint.innerHTML = ios ? i18n[lang].hintIos : i18n[lang].hintAnd;
+}
+function setLang(){
+  langBtn.textContent = lang === 'en' ? 'ES' : 'EN';
+  send.textContent = i18n[lang].send;
+  hint();
+}
+
+addManBtn = document.getElementById('addMan');
+['date','job','company','writer','work','mat','weather'].forEach(id => {
+  document.getElementById(id).addEventListener('input', save);
+  document.getElementById(id).addEventListener('change', save);
+});
+document.getElementById('crew').addEventListener('input', save);
+document.getElementById('addMan').onclick = () => { addMan(); save(); };
+document.getElementById('send').onclick = sendTicket;
+langBtn.onclick = () => { lang = lang === 'en' ? 'es' : 'en'; localStorage.setItem('fc-lang', lang); setLang(); };
+cam.onchange = (e) => {
+  [...e.target.files].forEach(file => {
+    photos.push(file);
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    document.getElementById('photos').insertBefore(img, document.getElementById('photos').lastElementChild);
+  });
+};
+load();
+setLang();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+</script>
+</body>
+</html>
