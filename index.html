@@ -8,8 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="FC Ticket" />
 <title>FC Ticket</title>
-<link rel="manifest" href="/manifest.json" />
-<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <style>
   :root {
     --navy: #1B2A4A;
@@ -75,14 +75,37 @@
   .bad { color: #ffb3b3; }
   .photos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .photos img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; border: 2px solid #fff; }
-  .cam {
-    display: flex; align-items: center; justify-content: center;
-    width: 72px; height: 72px; border-radius: 10px; background: var(--navy); color: var(--gold);
-    font-weight: 800; font-size: 28px;
+  .gate {
+    position: fixed; inset: 0; z-index: 50;
+    background: var(--navy); color: #fff;
+    padding: calc(24px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; justify-content: center;
   }
+  .gate h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.03em; }
+  .gate p { margin: 0 0 18px; color: #d7deea; font-size: 16px; line-height: 1.35; }
+  .step { display: flex; gap: 12px; align-items: center; background: #14233f; border: 1px solid var(--gold); border-radius: 14px; padding: 12px; margin-bottom: 10px; }
+  .num { width: 32px; height: 32px; border-radius: 999px; background: var(--gold); color: var(--navy); font-weight: 900; display: flex; align-items: center; justify-content: center; flex: none; }
+  .installBtn {
+    width: 100%; background: var(--gold); color: var(--navy); border: 0;
+    font-weight: 900; font-size: 18px; border-radius: 14px; padding: 16px; margin-top: 8px;
+  }
+  .skip { display: block; width: 100%; background: none; border: 0; color: #9aa6bd; margin-top: 14px; font-size: 14px; text-decoration: underline; }
 </style>
 </head>
 <body>
+<div class="gate" id="gate">
+  <h1 id="gateTitle">Add FC Ticket</h1>
+  <p id="gateLead">One time. Then it sits on the home screen like an app. No store.</p>
+  <div id="androidBox" style="display:none">
+    <button class="installBtn" id="installBtn" type="button">INSTALL</button>
+  </div>
+  <div id="iosBox">
+    <div class="step"><div class="num">1</div><div id="s1">Tap the Share button. The square with the arrow.</div></div>
+    <div class="step"><div class="num">2</div><div id="s2">Tap Add to Home Screen.</div></div>
+    <div class="step"><div class="num">3</div><div id="s3">Open the FC icon. That is the app.</div></div>
+  </div>
+  <button class="skip" id="skipBtn" type="button">Use it in the browser this once</button>
+</div>
 <header>
   <div class="brand">FC TICKET<small>reporte diario</small></div>
   <button class="ghost" id="langBtn" type="button">ES</button>
@@ -250,13 +273,38 @@ async function sendTicket(){
   msg.className = 'msg ok';
   msg.textContent = 'Copied. Paste it in the text thread.';
 }
+function showApp(){ document.getElementById('gate').style.display = 'none'; }
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  androidBox.style.display = 'block';
+  iosBox.style.display = 'none';
+});
+installBtn.onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+};
+skipBtn.onclick = () => { sessionStorage.setItem('fc-skip-install','1'); showApp(); };
+function gateCopy(){
+  const es = lang === 'es';
+  gateTitle.textContent = es ? 'Pon FC Ticket' : 'Add FC Ticket';
+  gateLead.textContent = es
+    ? 'Una vez. Luego queda en la pantalla como una app.'
+    : 'One time. Then it sits on the home screen like an app. No store.';
+  s1.textContent = es ? 'Toca Compartir. El cuadrado con la flecha.' : 'Tap the Share button. The square with the arrow.';
+  s2.textContent = es ? 'Toca Agregar a pantalla de inicio.' : 'Tap Add to Home Screen.';
+  s3.textContent = es ? 'Abre el icono FC. Esa es la app.' : 'Open the FC icon. That is the app.';
+  skipBtn.textContent = es ? 'Usarlo en el navegador esta vez' : 'Use it in the browser this once';
+  installBtn.textContent = es ? 'INSTALAR' : 'INSTALL';
+}
 function hint(){
-  const ua = navigator.userAgent || '';
-  const ios = /iPhone|iPad|iPod/.test(ua);
   const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  if(standalone) return;
-  installHint.style.display = 'block';
-  installHint.innerHTML = ios ? i18n[lang].hintIos : i18n[lang].hintAnd;
+  if (standalone || sessionStorage.getItem('fc-skip-install') === '1') showApp();
+  else document.getElementById('gate').style.display = 'flex';
+  gateCopy();
 }
 function setLang(){
   langBtn.textContent = lang === 'en' ? 'ES' : 'EN';
@@ -283,7 +331,7 @@ cam.onchange = (e) => {
 };
 load();
 setLang();
-if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
 </html>
